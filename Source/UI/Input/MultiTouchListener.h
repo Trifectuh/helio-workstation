@@ -23,14 +23,7 @@ public:
     
     virtual ~MultiTouchListener() {}
 
-    virtual void multiTouchZoomEvent(const Point<float> &origin, const Point<float> &zoom) = 0;
-    
-    virtual void multiTouchPanEvent(const Point<float> &offset) = 0;
-    
-    virtual void multiTouchCancelZoom() = 0;
-
-    virtual void multiTouchCancelPan() = 0;
-
-    virtual Point<float> getMultiTouchOrigin(const Point<float> &from) = 0;
+    virtual void multiTouchEvent(const Point<double> &dragOffset,
+        const Point<double> &zoomOrigin, const Point<double> &zoomFactor) = 0;
     
 };

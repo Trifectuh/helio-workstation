@@ -147,11 +147,8 @@ public:
     void longTapEvent(const Point<float> &position,
         const WeakReference<Component> &target) override;
 
-    void multiTouchZoomEvent(const Point<float> &origin, const Point<float> &zoom) override;
-    void multiTouchPanEvent(const Point<float> &offset) override;
-    void multiTouchCancelZoom() override;
-    void multiTouchCancelPan() override;
-    Point<float> getMultiTouchOrigin(const Point<float> &from) override;
+    void multiTouchEvent(const Point<double> &dragOffset,
+        const Point<double> &zoomOrigin, const Point<double> &zoomFactor) override;
 
     //===------------------------------------------------------------------===//
     // SmoothPanListener

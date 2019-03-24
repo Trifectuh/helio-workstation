@@ -389,33 +389,39 @@ void HybridRoll::longTapEvent(const Point<float> &position,
     }
 }
 
-void HybridRoll::multiTouchZoomEvent(const Point<float> &origin, const Point<float> &zoom)
+void HybridRoll::multiTouchEvent(const Point<double> &dragOffset,
+    const Point<double> &zoomOrigin, const Point<double> &zoomFactor)
 {
     this->smoothPanController->cancelPan();
-    this->smoothZoomController->zoomRelative(origin, zoom);
-}
-
-void HybridRoll::multiTouchPanEvent(const Point<float> &offset)
-{
-    //this->smoothZoomController->cancelZoom();
-    this->smoothPanController->panByOffset(this->viewport.getViewPosition() + offset.toInt());
-}
-
-void HybridRoll::multiTouchCancelZoom()
-{
-    this->clickAnchor = Desktop::getInstance().getMainMouseSource().getScreenPosition();
     this->smoothZoomController->cancelZoom();
-}
-
-void HybridRoll::multiTouchCancelPan()
-{
     this->clickAnchor = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-    this->smoothPanController->cancelPan();
-}
 
-Point<float> HybridRoll::getMultiTouchOrigin(const Point<float> &from)
-{
-    return (from - this->viewport.getViewPosition().toFloat());
+    const auto pxOffset = Point<int>(int(dragOffset.x * this->getWidth()), int(dragOffset.y * this->getHeight()));
+    const auto pxOrigin = Point<float>(float(zoomOrigin.x * this->getWidth()), float(zoomOrigin.y * this->getHeight()));
+
+    const auto oldViewPosition = this->viewport.getViewPosition();
+    const float oldWidth = float(this->getWidth());
+
+    float newBarWidth = this->getBarWidth() + float(zoomFactor.getX() * this->getBarWidth());
+    const float estimatedNewWidth = newBarWidth * this->getNumBars();
+
+    if (estimatedNewWidth < float(this->viewport.getViewWidth()))
+    {
+        newBarWidth = (float(this->viewport.getWidth() + 1) / this->getNumBars());
+    }
+
+    this->setBarWidth(newBarWidth);
+
+    const float newWidth = float(this->getWidth());
+    const float mouseOffsetX = float(pxOrigin.getX() - oldViewPosition.getX());
+    const float newViewPositionX = float((pxOrigin.getX() * newWidth) / oldWidth) - mouseOffsetX;
+    const Point<int> newViewPosition = { int(newViewPositionX + 0.5f), oldViewPosition.getY() };
+    this->viewport.setViewPosition(pxOffset + newViewPosition);
+
+    this->playheadOffset = this->findPlayheadOffsetFromViewCentre();
+
+    this->resetDraggingAnchors();
+    this->updateChildrenPositions();
 }
 
 //===----------------------------------------------------------------------===//
@@ -542,8 +548,9 @@ void HybridRoll::zoomRelative(const Point<float> &origin, const Point<float> &fa
     const float estimatedNewWidth = newBarWidth * this->getNumBars();
 
     if (estimatedNewWidth < float(this->viewport.getViewWidth()))
-    { newBarWidth = (float(this->viewport.getWidth() + 1) / this->getNumBars()); } // a hack
-    //{ newBarWidth = (float(this->viewport.getViewWidth()) / this->getNumBars()); }
+    {
+        newBarWidth = (float(this->viewport.getWidth() + 1) / this->getNumBars());
+    }
 
     this->setBarWidth(newBarWidth);
 
